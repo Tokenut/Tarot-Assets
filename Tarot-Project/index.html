@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔罗牌互动阵</title>
+    <style>
+        :root {
+            --highlight-color: #5ffad3;
+        }
+
+        html, body {
+            background: transparent;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Philosopher', "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+        }
+
+        /* --- 牌组容器 --- */
+        .deck-container {
+            display: flex;
+            gap: 32px;
+            padding: 40px;
+        }
+
+        /* --- 单张卡片 --- */
+        .tarot-card {
+            width: 240px;
+            height: 410px;
+            perspective: 1200px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.4s ease-out, filter 0.4s ease-out, opacity 0.4s ease-out;
+        }
+
+        /* === 排他性悬停 === */
+        .deck-container:hover .tarot-card:not(:hover) {
+            opacity: 0.6;
+            transform: scale(0.97) translateY(5px);
+            filter: grayscale(20%);
+        }
+        
+        .tarot-card:hover {
+            opacity: 1;
+            transform: scale(1.03) translateY(-12px);
+            filter: drop-shadow(0 0 12px rgba(95, 250, 211, 0.6));
+            z-index: 10;
+        }
+
+        /* --- 内部 3D 翻转层 --- */
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border-radius: 12px;
+        }
+
+        .tarot-card.is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* --- 卡牌正反面 --- */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15);
+            /* 100% 100% 强制完全填满，不裁切不留白 */
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card-front {
+            transform: rotateY(180deg) scale(1.08);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* --- 每张卡独立图片 --- */
+        .tarot-card[data-index="0"] .card-back  { background-image: url('back1.png'); }
+        .tarot-card[data-index="0"] .card-front { background-image: url('front1.png'); }
+
+        .tarot-card[data-index="1"] .card-back  { background-image: url('back2.png'); }
+        .tarot-card[data-index="1"] .card-front { background-image: url('front2.png'); }
+
+        .tarot-card[data-index="2"] .card-back  { background-image: url('back3.png'); }
+        .tarot-card[data-index="2"] .card-front { background-image: url('front3.png'); }
+
+        /* --- 重置按钮 --- */
+        .restart-button {
+            margin-top: 20px;
+            padding: 10px 35px;
+            background: rgba(255,255,255,0.1);
+            color: #14b8a6;
+            border: 2px solid #14b8a6;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px);
+            transition: all 0.4s ease;
+        }
+
+        .restart-button.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .restart-button:hover {
+            background: #14b8a6;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(20, 184, 166, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="deck-container">
+        <div class="tarot-card" data-index="0">
+            <div class="card-inner">
+                <div class="card-face card-back"></div>
+                <div class="card-face card-front"></div>
+            </div>
+        </div>
+
+        <div class="tarot-card" data-index="1">
+            <div class="card-inner">
+                <div class="card-face card-back"></div>
+                <div class="card-face card-front"></div>
+            </div>
+        </div>
+
+        <div class="tarot-card" data-index="2">
+            <div class="card-inner">
+                <div class="card-face card-back"></div>
+                <div class="card-face card-front"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="restart-button" id="restart-btn">Restart</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.tarot-card');
+            const restartBtn = document.getElementById('restart-btn');
+            
+            let flippedCount = 0; 
+            const totalCards = cards.length;
+
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    if (!card.classList.contains('is-flipped')) {
+                        card.classList.add('is-flipped');
+                        flippedCount++;
+
+                        if (flippedCount === totalCards) {
+                            setTimeout(() => {
+                                restartBtn.classList.add('show');
+                            }, 700);
+                        }
+                    }
+                });
+            });
+
+            restartBtn.addEventListener('click', () => {
+                cards.forEach(card => card.classList.remove('is-flipped'));
+                restartBtn.classList.remove('show');
+                flippedCount = 0;
+            });
+        });
+    </script>
+
+</body>
+</html>
