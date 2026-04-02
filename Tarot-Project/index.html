@@ -1,58 +1,64 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>塔罗牌互动阵</title>
+    <title>Tarot Reading</title>
     <style>
         :root {
-            --highlight-color: #5ffad3;
+            --accent: #14b8a6;
+            --accent-light: rgba(20, 184, 166, 0.06);
+            --accent-border: rgba(20, 184, 166, 0.2);
         }
+
+        * { box-sizing: border-box; }
 
         html, body {
             background: transparent;
             margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-family: 'Philosopher', "Microsoft YaHei", sans-serif;
-            overflow: hidden;
         }
 
-        /* --- 整体包裹层：统一缩放 --- */
+        body {
+            display: flex;
+            justify-content: center;
+            padding: 24px 0 40px;
+        }
+
+        /* --- Wrapper: no fixed height, grows with content --- */
         .wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            transform-origin: center center;
+            width: 100%;
+            max-width: 880px;
         }
 
-        /* --- 牌组容器 --- */
         .deck-container {
             display: flex;
             gap: 32px;
-            padding: 20px 40px;
+            padding: 10px 40px 20px;
+            justify-content: center;
         }
 
-        /* --- 单张卡片 --- */
+        /* --- Cards --- */
         .tarot-card {
             width: 240px;
             height: 410px;
-            padding: 20px 0;
+            padding: 18px 0;
             perspective: 1200px;
             cursor: pointer;
             position: relative;
             transition: transform 0.4s ease-out, filter 0.4s ease-out, opacity 0.4s ease-out;
+            flex-shrink: 0;
         }
 
-        /* === 排他性悬停 === */
         .deck-container:hover .tarot-card:not(:hover) {
             opacity: 0.6;
             transform: scale(0.97) translateY(5px);
             filter: grayscale(20%);
         }
-        
+
         .tarot-card:hover {
             opacity: 1;
             transform: scale(1.03) translateY(-12px);
@@ -60,7 +66,6 @@
             z-index: 10;
         }
 
-        /* --- 内部 3D 翻转层 --- */
         .card-inner {
             width: 100%;
             height: 100%;
@@ -74,7 +79,6 @@
             transform: rotateY(180deg);
         }
 
-        /* --- 卡牌正反面 --- */
         .card-face {
             position: absolute;
             width: 100%;
@@ -93,117 +97,416 @@
             box-shadow: none;
         }
 
-        /* --- 每张卡独立图片（GitHub raw 链接） --- */
-        .tarot-card[data-index="0"] .card-back  { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/back1.png'); }
-        .tarot-card[data-index="0"] .card-front { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/front1.png'); }
+        /* --- Button Row: always centered --- */
+        .btn-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 6px;
+            min-height: 50px;
+        }
 
-        .tarot-card[data-index="1"] .card-back  { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/back2.png'); }
-        .tarot-card[data-index="1"] .card-front { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/front2.png'); }
-
-        .tarot-card[data-index="2"] .card-back  { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/back3.png'); }
-        .tarot-card[data-index="2"] .card-front { background-image: url('https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/front3.png'); }
-
-        /* --- 重置按钮 --- */
-        .restart-button {
-            margin-top: 10px;
-            padding: 10px 35px;
-            background: rgba(255,255,255,0.1);
-            color: #14b8a6;
-            border: 2px solid #14b8a6;
+        .btn {
+            padding: 10px 30px;
             border-radius: 30px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: inherit;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(15px);
-            transition: all 0.4s ease;
+            position: absolute;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .restart-button.show {
+        .btn.show {
             opacity: 1;
             visibility: visible;
+            position: relative;
             transform: translateY(0);
         }
 
-        .restart-button:hover {
-            background: #14b8a6;
-            color: #ffffff;
-            box-shadow: 0 0 15px rgba(20, 184, 166, 0.4);
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border: 2px solid var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* --- Reading Panel --- */
+        .reading-panel {
+            width: 100%;
+            max-width: 824px;
+            padding: 0 20px;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, margin 0.4s ease;
+            margin-top: 0;
+        }
+
+        .reading-panel.show {
+            max-height: 3000px;
+            opacity: 1;
+            margin-top: 24px;
+        }
+
+        .guidance-box {
+            background: var(--accent-light);
+            border: 1px solid var(--accent-border);
+            border-radius: 16px;
+            padding: 28px 32px;
+        }
+
+        .section-label {
+            margin: 0 0 14px 0;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .guidance-text {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .typing-cursor::after {
+            content: '▍';
+            animation: blink 0.8s infinite;
+            color: var(--accent);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* --- Individual Readings Section --- */
+        .individual-section {
+            margin-top: 24px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+        }
+
+        .individual-section.show {
+            max-height: 1200px;
+            opacity: 1;
+        }
+
+        .individual-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 0 0 14px 0;
+            user-select: none;
+        }
+
+        .individual-header:hover .expand-arrow {
+            color: #0d9488;
+        }
+
+        .expand-arrow {
+            font-size: 12px;
+            color: var(--accent);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .individual-header.expanded .expand-arrow {
+            transform: rotate(180deg);
+        }
+
+        .card-readings {
+            display: flex;
+            gap: 16px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .card-readings.show {
+            max-height: 800px;
+            opacity: 1;
+        }
+
+        .card-reading {
+            flex: 1;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-reading-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+
+        .card-reading-text {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #666;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 860px) {
+            .deck-container { gap: 20px; padding: 10px 20px 20px; }
+            .tarot-card { width: 200px; height: 342px; padding: 15px 0; }
+            .card-readings { flex-direction: column; }
+            .reading-panel { padding: 0 12px; }
+            .guidance-box { padding: 20px 22px; }
+        }
+
+        @media (max-width: 680px) {
+            .deck-container { gap: 12px; padding: 10px 12px 16px; }
+            .tarot-card { width: 160px; height: 274px; padding: 12px 0; }
+            .btn { font-size: 14px; padding: 8px 22px; }
+        }
+
+        @media (max-width: 520px) {
+            .deck-container { gap: 8px; padding: 8px 8px 12px; }
+            .tarot-card { width: 110px; height: 188px; padding: 10px 0; }
+            .btn { font-size: 13px; padding: 8px 18px; }
+            .guidance-box { padding: 16px; }
+            .section-label { font-size: 12px; }
+            .guidance-text { font-size: 14px; }
         }
     </style>
 </head>
 <body>
 
     <div class="wrapper" id="wrapper">
-        <div class="deck-container">
-            <div class="tarot-card" data-index="0">
-                <div class="card-inner">
-                    <div class="card-face card-back"></div>
-                    <div class="card-face card-front"></div>
-                </div>
-            </div>
+        <div class="deck-container" id="deck-container"></div>
 
-            <div class="tarot-card" data-index="1">
-                <div class="card-inner">
-                    <div class="card-face card-back"></div>
-                    <div class="card-face card-front"></div>
-                </div>
-            </div>
-
-            <div class="tarot-card" data-index="2">
-                <div class="card-inner">
-                    <div class="card-face card-back"></div>
-                    <div class="card-face card-front"></div>
-                </div>
-            </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" id="reading-btn">✦ Reveal Reading</button>
+            <button class="btn btn-secondary" id="restart-btn">Restart</button>
         </div>
 
-        <button class="restart-button" id="restart-btn">Restart</button>
+        <div class="reading-panel" id="reading-panel">
+            <div class="guidance-box">
+                <p class="section-label">✦ Overall Guidance</p>
+                <p class="guidance-text" id="overall-text"></p>
+            </div>
+
+            <div class="individual-section" id="individual-section">
+                <div class="individual-header" id="individual-header" onclick="toggleDetails()">
+                    <p class="section-label" style="margin:0;">✦ Individual Readings</p>
+                    <span class="expand-arrow">▼</span>
+                </div>
+                <div class="card-readings" id="card-readings"></div>
+            </div>
+        </div>
     </div>
 
     <script>
+        const BASE_URL = 'https://raw.githubusercontent.com/Tokenut/Tarot-Assets/main/Tarot-Project/';
+
+        const CARD_LIBRARY = [
+            {
+                name: 'Ten of Cups',
+                front: BASE_URL + 'front1.png',
+                back: BASE_URL + 'back1.png',
+                readings: [
+                    "Emotional fulfillment flows through every corner of your life — relationships, self-worth, and how you relate to your personal journey. Your inner world is reaching a rare equilibrium. Let this harmony be the foundation from which you navigate what comes next, whether it's a new direction or a deeper commitment to the people and values that matter most.",
+                    "The abundance you feel right now signals that your mindset is aligned with something greater. Confidence rooted in genuine fulfillment consistently outperforms decisions made from fear. Trust the richness of this moment — the emotional clarity you've built is quietly compounding, preparing you for growth you haven't yet imagined.",
+                    "Your cup overflows with connection and gratitude — the kind of inner wealth that remains steady through any storm. Use this emotional clarity as your compass: when your heart is settled, your thinking sharpens across every domain. You're operating from wholeness, not scarcity, and that changes everything."
+                ]
+            },
+            {
+                name: 'The Fool',
+                front: BASE_URL + 'front2.png',
+                back: BASE_URL + 'back2.png',
+                readings: [
+                    "A new cycle begins — and with it, the courage to step into uncharted territory. Like early participants in any paradigm shift, you're called to trust your instincts over conventional thinking. The Fool doesn't wait for perfect conditions. Your greatest breakthroughs — emotional, intellectual, and creative — will come from embracing uncertainty with open arms.",
+                    "Release the need to have it all figured out. The most meaningful growth — in self-understanding, in exploring new systems and ideas, in relationships — requires a leap of faith. Let go of sunk costs, outdated beliefs, and the fear of looking foolish. What awaits on the other side is a version of you unburdened by hesitation.",
+                    "Every transformative chapter started with a single bold decision that others questioned. The Fool sees what the crowd misses: that the biggest risk is standing still. Whether it's exploring a new frontier, shifting your perspective, or simply choosing curiosity over anxiety — step forward. There's a safety net you can't see yet."
+                ]
+            },
+            {
+                name: 'Three of Wands',
+                front: BASE_URL + 'front3.png',
+                back: BASE_URL + 'back3.png',
+                readings: [
+                    "Your vision is expanding beyond familiar horizons. You sense that something larger is taking shape — the early positioning you've done is starting to matter. The Three of Wands says your foresight is sound. Stay patient, stay watchful, and trust that the groundwork you've laid will bear fruit in both wisdom and tangible results.",
+                    "Expansion is the keyword. Whether it's broadening your worldview, exploring emerging ecosystems, or simply widening your sense of what's possible — the cards urge you to think bigger. You've done the preparation. Now scan the horizon for the opportunities that match the scale of your ambition. They're closer than you think.",
+                    "You stand at a vantage point others haven't reached yet. The Three of Wands rewards those who plan ahead and hold their nerve while waiting for things to unfold. This applies equally to personal growth and professional vision — the long game is where the real breakthroughs live. Keep your gaze forward."
+                ]
+            },
+            {
+                name: 'Ace of Pentacles',
+                front: BASE_URL + 'front4.png',
+                back: BASE_URL + 'back4.png',
+                readings: [
+                    "A golden seed of opportunity lands in your palm. The Ace of Pentacles represents a genesis moment — a promising idea, a new path, or a breakthrough that carries real potential. Treat it with care: nurture it with focus and intention, protect it from noise, and give it room to grow. This is the beginning of something tangible and lasting.",
+                    "The universe is handing you something rare: a chance to build from the ground up. Whether it's a new practice, a meaningful project, or the foundation of something with real-world impact — receive this gift with both hands. Timing matters, and your instinct to act now is well-placed. Plant the flag.",
+                    "Material and personal abundance starts with a single clear intention — and that intention has just crystallized. The Ace of Pentacles isn't about overnight change; it's about recognizing the one opportunity that, with steady cultivation, becomes transformational. Align your emotional energy with practical action. The returns will exceed your expectations."
+                ]
+            },
+            {
+                name: 'Wheel of Fortune',
+                front: BASE_URL + 'front5.png',
+                back: BASE_URL + 'back5.png',
+                readings: [
+                    "The great wheel turns, and the cycle shifts in your favor. The conditions that held you back are dissolving, replaced by a new phase of momentum. The Wheel of Fortune reminds you that nothing stays static. Use this turning point to recalibrate — your priorities, your energy, and your sense of direction. Ride the shift with awareness, not just excitement.",
+                    "Fate and preparation converge. The Wheel spins for everyone, but only the aware can harness its energy. This is your signal to embrace change — not just externally, but internally. The discomfort of transition is the cost of growth. Whether you're rethinking your approach, opening to a new chapter, or releasing what no longer serves you — the wheel says: now.",
+                    "What goes around comes around — and right now, it's arriving beautifully. Cycles in life, in markets, and in personal evolution all follow the same rhythm: accumulation, breakthrough, consolidation, renewal. You're entering the breakthrough phase. The emotional resilience you've built through past challenges is now your greatest strength."
+                ]
+            }
+        ];
+
+        const OVERALL_GUIDANCE = [
+            "Your spread weaves together emotional intelligence, bold initiative, and strategic foresight — the three pillars of anyone who thrives through complexity and change. The cards suggest you're entering a phase where inner clarity directly supports outer momentum. Trust the signals: your emotional compass is calibrated, your courage is ready, and the horizon holds more than you can see from here.",
+            "This reading reveals a rare alignment between your inner world and your ambitions. The emotional richness you carry isn't separate from your growth — it's the engine behind it. Your life is finding its balance between the stability of what you've built and the pull of what's emerging. The cards urge you to honor both: tend what matters and stay open to what's next.",
+            "The universe is offering a masterclass in timing. Each card represents a different tempo — the steady rhythm of emotional grounding, the staccato burst of a new beginning, and the long patient arc of strategic vision. Together, they say this is not a moment to rush or hesitate, but to flow. Let your next moves feel like a dance, not a battle.",
+            "A powerful convergence is taking place across every dimension of your life. The cards speak of abundance that isn't just material — it's cognitive, emotional, and relational. You're being asked to integrate all of these into a unified approach. The wisest decisions come from wholeness, not from fear of missing out. You're more ready than you think.",
+            "Your reading carries an unmistakable message of momentum. Something is accelerating — a personal transformation, a creative vision finding its form, or a long-held plan finally gaining traction. The cards suggest that your resilience has been quietly compounding, and the dividends are arriving. Stay grounded, stay open, and let intuition guide where analysis alone cannot reach."
+        ];
+
+        let currentDraw = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             const wrapper = document.getElementById('wrapper');
-            const cards = document.querySelectorAll('.tarot-card');
+            const readingBtn = document.getElementById('reading-btn');
             const restartBtn = document.getElementById('restart-btn');
+            const readingPanel = document.getElementById('reading-panel');
+            const individualSection = document.getElementById('individual-section');
 
-            /* --- 整体统一缩放 --- */
-            const BASE_W = 880;
-            const BASE_H = 540;
-            function resize() {
-                const s = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
-                wrapper.style.transform = `scale(${s})`;
+            function drawCards() {
+                const indices = [];
+                while (indices.length < 3) {
+                    const r = Math.floor(Math.random() * CARD_LIBRARY.length);
+                    if (!indices.includes(r)) indices.push(r);
+                }
+                currentDraw = indices.map(i => CARD_LIBRARY[i]);
+                renderCards();
             }
-            resize();
-            window.addEventListener('resize', resize);
 
-            let flippedCount = 0; 
-            const totalCards = cards.length;
+            function renderCards() {
+                const container = document.getElementById('deck-container');
+                container.innerHTML = currentDraw.map((card, i) => `
+                    <div class="tarot-card" data-index="${i}">
+                        <div class="card-inner">
+                            <div class="card-face card-back" style="background-image: url('${card.back}')"></div>
+                            <div class="card-face card-front" style="background-image: url('${card.front}')"></div>
+                        </div>
+                    </div>
+                `).join('');
 
-            cards.forEach(card => {
-                card.addEventListener('click', () => {
-                    if (!card.classList.contains('is-flipped')) {
-                        card.classList.add('is-flipped');
-                        flippedCount++;
+                document.getElementById('card-readings').innerHTML = currentDraw.map((card, i) => `
+                    <div class="card-reading">
+                        <p class="card-reading-name">${card.name}</p>
+                        <p class="card-reading-text" id="reading-${i}"></p>
+                    </div>
+                `).join('');
 
-                        if (flippedCount === totalCards) {
-                            setTimeout(() => {
-                                restartBtn.classList.add('show');
-                            }, 700);
+                bindFlipEvents();
+            }
+
+            let flippedCount = 0;
+            function bindFlipEvents() {
+                flippedCount = 0;
+                document.querySelectorAll('.tarot-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        if (!card.classList.contains('is-flipped')) {
+                            card.classList.add('is-flipped');
+                            flippedCount++;
+                            if (flippedCount === 3) {
+                                setTimeout(() => readingBtn.classList.add('show'), 700);
+                            }
                         }
-                    }
+                    });
                 });
+            }
+
+            readingBtn.addEventListener('click', async () => {
+                readingBtn.disabled = true;
+
+                const overall = OVERALL_GUIDANCE[Math.floor(Math.random() * OVERALL_GUIDANCE.length)];
+
+                readingPanel.classList.add('show');
+                await typeText('overall-text', overall);
+
+                currentDraw.forEach((card, i) => {
+                    const reading = card.readings[Math.floor(Math.random() * card.readings.length)];
+                    document.getElementById(`reading-${i}`).textContent = reading;
+                });
+
+                individualSection.classList.add('show');
+                readingBtn.innerHTML = '✦ Reading Complete';
+
+                setTimeout(() => restartBtn.classList.add('show'), 300);
             });
 
             restartBtn.addEventListener('click', () => {
-                cards.forEach(card => card.classList.remove('is-flipped'));
+                readingBtn.classList.remove('show');
                 restartBtn.classList.remove('show');
-                flippedCount = 0;
+                readingPanel.classList.remove('show');
+                individualSection.classList.remove('show');
+                document.getElementById('individual-header').classList.remove('expanded');
+                document.getElementById('card-readings').classList.remove('show');
+                readingBtn.innerHTML = '✦ Reveal Reading';
+                readingBtn.disabled = false;
+                document.getElementById('overall-text').textContent = '';
+
+                drawCards();
             });
+
+            drawCards();
         });
+
+        function toggleDetails() {
+            const header = document.getElementById('individual-header');
+            const readings = document.getElementById('card-readings');
+            header.classList.toggle('expanded');
+            readings.classList.toggle('show');
+        }
+
+        async function typeText(elementId, text) {
+            const el = document.getElementById(elementId);
+            el.textContent = '';
+            el.classList.add('typing-cursor');
+            for (let i = 0; i < text.length; i++) {
+                el.textContent += text[i];
+                await new Promise(r => setTimeout(r, 10));
+            }
+            el.classList.remove('typing-cursor');
+        }
     </script>
 
 </body>
