@@ -13,6 +13,15 @@
 
         * { box-sizing: border-box; }
 
+        /* Hide scrollbar initially, show elegant one after reading */
+        html { scrollbar-width: none; }
+        html::-webkit-scrollbar { display: none; }
+        html.has-reading { scrollbar-width: thin; scrollbar-color: rgba(20,184,166,0.3) transparent; }
+        html.has-reading::-webkit-scrollbar { display: block; width: 4px; }
+        html.has-reading::-webkit-scrollbar-track { background: transparent; }
+        html.has-reading::-webkit-scrollbar-thumb { background: rgba(20,184,166,0.3); border-radius: 4px; }
+        html.has-reading::-webkit-scrollbar-thumb:hover { background: rgba(20,184,166,0.5); }
+
         html, body {
             background: transparent;
             margin: 0;
@@ -22,7 +31,7 @@
         body {
             display: flex;
             justify-content: center;
-            padding: 24px 0 40px;
+            padding: 16px 0 32px;
         }
 
         /* --- Wrapper: no fixed height, grows with content --- */
@@ -37,7 +46,7 @@
         .deck-container {
             display: flex;
             gap: 32px;
-            padding: 10px 40px 20px;
+            padding: 4px 40px 12px;
             justify-content: center;
         }
 
@@ -226,7 +235,7 @@
 
         .individual-header {
             cursor: pointer;
-            padding: 0 0 14px 0;
+            padding: 0 0 14px 32px;
             user-select: none;
         }
 
@@ -487,6 +496,9 @@
                 readingBtn.innerHTML = '✦ Reading Complete';
 
                 setTimeout(() => restartBtn.classList.add('show'), 300);
+
+                /* Show elegant scrollbar after reading */
+                document.documentElement.classList.add('has-reading');
             });
 
             restartBtn.addEventListener('click', () => {
@@ -499,6 +511,9 @@
                 readingBtn.innerHTML = '✦ Reveal Reading';
                 readingBtn.disabled = false;
                 document.getElementById('overall-text').textContent = '';
+
+                document.documentElement.classList.remove('has-reading');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 drawCards();
             });
@@ -525,5 +540,7 @@
         }
     </script>
 
+</body>
+</html>
 </body>
 </html>
